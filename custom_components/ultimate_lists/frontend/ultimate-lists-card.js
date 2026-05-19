@@ -41,12 +41,12 @@ class UltimateListsCard extends HTMLElement {
     }
     this._loading = true;
     try {
-      const payload = await this._hass.callApi("GET", "/api/ultimate_lists/lists");
+      const payload = await this._hass.callApi("GET", "ultimate_lists/lists");
       this._data = payload;
       this._error = "";
       this._render();
     } catch (err) {
-      this._error = err?.message || String(err);
+      this._error = this._formatError(err);
       this._render();
     } finally {
       this._loading = false;
@@ -65,9 +65,14 @@ class UltimateListsCard extends HTMLElement {
   }
 
   async _postAction(action, data) {
-    this._data = await this._hass.callApi("POST", "/api/ultimate_lists/action", { action, data });
-    this._error = "";
-    this._render();
+    try {
+      this._data = await this._hass.callApi("POST", "ultimate_lists/action", { action, data });
+      this._error = "";
+      this._render();
+    } catch (err) {
+      this._error = this._formatError(err);
+      this._render();
+    }
   }
 
   _escape(text) {
@@ -76,6 +81,29 @@ class UltimateListsCard extends HTMLElement {
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;");
+  }
+
+  _formatError(err) {
+    if (!err) {
+      return "Unknown error";
+    }
+    if (typeof err === "string") {
+      return err;
+    }
+    if (err.message) {
+      return err.message;
+    }
+    if (err.body?.message) {
+      return err.body.message;
+    }
+    if (err.error) {
+      return err.error;
+    }
+    try {
+      return JSON.stringify(err);
+    } catch (_jsonErr) {
+      return String(err);
+    }
   }
 
   _renderItems(list, focusMode) {
@@ -348,6 +376,12 @@ class UltimateListsCard extends HTMLElement {
             </div>
           </div>
           ${this._error ? `<div class="empty">${this._escape(this._error)}</div>` : ""}
+          ${this._creatingList ? `
+            <form class="quick-add" data-action="submit-list">
+              <input name="title" type="text" placeholder="New list name..." />
+              <button type="submit">Create</button>
+            </form>
+          ` : ""}
           ${list ? `
             <form class="quick-add" data-action="submit-item" data-list-id="${list.id}">
               <input name="text" type="text" placeholder="Add item..." />
@@ -372,6 +406,16 @@ class UltimateListsCard extends HTMLElement {
   async _handleSubmit(ev) {
     ev.preventDefault();
     const form = ev.currentTarget;
+    if (form.dataset.action === "submit-list") {
+      const input = form.querySelector('input[name="title"]');
+      const title = input?.value?.trim();
+      if (!title) {
+        return;
+      }
+      await this._postAction("create_list", { title });
+      this._creatingList = false;
+      return;
+    }
     const input = form.querySelector('input[name="text"]');
     const text = input?.value?.trim();
     const listId = form.dataset.listId;
@@ -402,10 +446,8 @@ class UltimateListsCard extends HTMLElement {
       return;
     }
     if (action === "new-list") {
-      const title = window.prompt("New list name", "Packing");
-      if (title) {
-        await this._postAction("create_list", { title });
-      }
+      this._creatingList = !this._creatingList;
+      this._render();
       return;
     }
     if (action === "delete-list" && listId) {
