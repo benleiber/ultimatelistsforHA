@@ -261,7 +261,7 @@ class UltimateListsCard extends HTMLElement {
         }
         .shell {
           display: grid;
-          grid-template-columns: minmax(220px, 270px) 1fr;
+          grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
           min-height: 440px;
         }
         .sidebar {
@@ -274,6 +274,7 @@ class UltimateListsCard extends HTMLElement {
         }
         .content {
           padding: 18px;
+          min-width: 0;
         }
         .eyebrow {
           text-transform: uppercase;
@@ -368,6 +369,8 @@ class UltimateListsCard extends HTMLElement {
           gap: 8px;
           align-items: center;
           position: relative;
+          flex-wrap: wrap;
+          justify-content: flex-end;
         }
         .icon-button {
           background: rgba(33, 48, 74, 0.08);
@@ -388,10 +391,12 @@ class UltimateListsCard extends HTMLElement {
           gap: 12px;
           margin-bottom: 14px;
           position: relative;
+          flex-wrap: wrap;
         }
         .list-header-copy {
           display: grid;
           gap: 4px;
+          min-width: 0;
         }
         .menu-pop {
           position: absolute;
@@ -417,6 +422,7 @@ class UltimateListsCard extends HTMLElement {
           grid-template-columns: 1fr auto;
           gap: 10px;
           margin-bottom: 14px;
+          align-items: stretch;
         }
         .quick-add.large {
           margin-bottom: 18px;
@@ -489,9 +495,11 @@ class UltimateListsCard extends HTMLElement {
           display: grid;
           gap: 3px;
           cursor: pointer;
+          min-width: 0;
         }
         .item-text {
           font-weight: 600;
+          overflow-wrap: anywhere;
         }
         .item-actions {
           display: flex;
@@ -538,6 +546,21 @@ class UltimateListsCard extends HTMLElement {
           .sidebar {
             border-right: 0;
             border-bottom: 1px solid var(--ul-border);
+          }
+        }
+        @media (max-width: 720px) {
+          .list-header {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .toolbar {
+            justify-content: flex-start;
+          }
+          .quick-add {
+            grid-template-columns: 1fr;
+          }
+          .quick-add button {
+            width: 100%;
           }
         }
         @media (max-width: 640px) {
