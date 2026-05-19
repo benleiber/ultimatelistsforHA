@@ -191,8 +191,8 @@ class UltimateListsCard extends HTMLElement {
               ${item.notes ? `<span class="meta">${this._escape(item.notes)}</span>` : ""}
             </span>
             <span class="item-actions">
-              <button class="icon-button subtle-button" data-action="edit-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button">Edit</button>
-              <button class="icon-button subtle-button danger" data-action="delete-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button">Delete</button>
+              <button class="icon-button subtle-button icon-only" data-action="edit-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button" title="Edit item" aria-label="Edit item">✎</button>
+              <button class="icon-button subtle-button danger icon-only" data-action="delete-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button" title="Delete item" aria-label="Delete item">🗑</button>
             </span>
           </div>
         `,
@@ -261,19 +261,19 @@ class UltimateListsCard extends HTMLElement {
         }
         .shell {
           display: grid;
-          grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
-          min-height: 380px;
+          grid-template-columns: minmax(136px, 180px) minmax(0, 1fr);
+          min-height: 280px;
         }
         .sidebar {
           background: var(--ul-rail);
           border-right: 1px solid var(--ul-border);
-          padding: 14px;
+          padding: 10px;
           display: grid;
-          gap: 10px;
+          gap: 8px;
           align-content: start;
         }
         .content {
-          padding: 16px 18px;
+          padding: 12px 14px;
           min-width: 0;
         }
         .eyebrow {
@@ -286,23 +286,23 @@ class UltimateListsCard extends HTMLElement {
         .sidebar-head {
           display: grid;
           gap: 2px;
-          padding-bottom: 2px;
+          padding-bottom: 0;
         }
         .sidebar-list {
           display: grid;
-          gap: 8px;
+          gap: 6px;
         }
         .sidebar-row {
           display: grid;
           grid-template-columns: 1fr auto;
-          gap: 8px;
+          gap: 6px;
           align-items: stretch;
         }
         .sidebar-main {
           border: 1px solid var(--ul-border);
           background: rgba(255,255,255,0.9);
-          border-radius: 16px;
-          padding: 10px 12px;
+          border-radius: 14px;
+          padding: 8px 10px;
           text-align: left;
           cursor: pointer;
           display: grid;
@@ -317,15 +317,16 @@ class UltimateListsCard extends HTMLElement {
           font-weight: 700;
           color: var(--ul-text);
           line-height: 1.15;
+          font-size: 0.96rem;
         }
         .sidebar-meta {
-          font-size: 0.78rem;
+          font-size: 0.74rem;
           color: var(--ul-subtle);
           line-height: 1.15;
         }
         .sidebar-tools {
           display: grid;
-          gap: 6px;
+          gap: 4px;
         }
         .mini-button,
         .icon-button,
@@ -343,22 +344,16 @@ class UltimateListsCard extends HTMLElement {
           cursor: pointer;
         }
         .mini-button {
-          width: 34px;
-          height: 34px;
+          width: 28px;
+          height: 28px;
           background: rgba(33, 48, 74, 0.08);
           color: var(--ul-text);
+          padding: 0;
         }
         .mini-button:disabled,
         .menu-item:disabled {
           opacity: 0.45;
           cursor: default;
-        }
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 12px;
-          margin-bottom: 14px;
         }
         .header h1, .list-header h2 {
           margin: 0;
@@ -368,7 +363,7 @@ class UltimateListsCard extends HTMLElement {
         }
         .toolbar {
           display: flex;
-          gap: 8px;
+          gap: 6px;
           align-items: center;
           position: relative;
           flex-wrap: wrap;
@@ -377,10 +372,20 @@ class UltimateListsCard extends HTMLElement {
         .icon-button {
           background: rgba(33, 48, 74, 0.08);
           color: var(--ul-text);
-          padding: 10px 14px;
+          padding: 8px 10px;
         }
         .subtle-button {
           background: rgba(33, 48, 74, 0.08);
+        }
+        .icon-only {
+          width: 34px;
+          height: 34px;
+          padding: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.95rem;
+          line-height: 1;
         }
         .icon-button.danger,
         .menu-item.danger {
@@ -390,18 +395,19 @@ class UltimateListsCard extends HTMLElement {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          gap: 12px;
-          margin-bottom: 12px;
+          gap: 10px;
+          margin-bottom: 10px;
           position: relative;
           flex-wrap: wrap;
         }
         .list-header-copy {
           display: grid;
-          gap: 1px;
+          gap: 0;
           min-width: 0;
         }
         .list-header-copy h2 {
           line-height: 1.08;
+          font-size: 1.05rem;
         }
         .menu-pop {
           position: absolute;
@@ -419,33 +425,33 @@ class UltimateListsCard extends HTMLElement {
         }
         .menu-item {
           background: transparent;
-          padding: 10px 12px;
+          padding: 8px 10px;
           text-align: left;
         }
         .quick-add {
           display: grid;
           grid-template-columns: 1fr auto;
-          gap: 10px;
+          gap: 8px;
           margin-bottom: 12px;
           align-items: stretch;
         }
         .quick-add.large {
-          margin-bottom: 18px;
+          margin-bottom: 14px;
         }
         input {
           width: 100%;
           box-sizing: border-box;
           border: 1px solid var(--ul-border);
-          border-radius: 14px;
-          padding: 12px 14px;
+          border-radius: 12px;
+          padding: 10px 12px;
           background: rgba(255,255,255,0.86);
           color: var(--ul-text);
           font: inherit;
         }
         .quick-add button {
           border: 0;
-          border-radius: 14px;
-          padding: 10px 14px;
+          border-radius: 12px;
+          padding: 10px 12px;
           cursor: pointer;
           background: var(--ul-accent);
           color: white;
@@ -453,23 +459,23 @@ class UltimateListsCard extends HTMLElement {
         }
         .items {
           display: grid;
-          gap: 8px;
+          gap: 6px;
         }
         .item-row {
           width: 100%;
           border: 1px solid var(--ul-border);
           background: var(--ul-panel);
-          border-radius: 16px;
-          padding: 12px;
+          border-radius: 14px;
+          padding: 8px 10px;
           display: grid;
-          grid-template-columns: 28px 1fr auto;
+          grid-template-columns: 24px 1fr auto;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
           text-align: left;
         }
         .item-row.focus {
-          min-height: 64px;
-          padding: 14px;
+          min-height: 52px;
+          padding: 10px 12px;
         }
         .toggle-hit {
           border: 0;
@@ -482,8 +488,8 @@ class UltimateListsCard extends HTMLElement {
           justify-content: center;
         }
         .checkbox {
-          width: 22px;
-          height: 22px;
+          width: 20px;
+          height: 20px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -498,21 +504,22 @@ class UltimateListsCard extends HTMLElement {
         }
         .item-copy {
           display: grid;
-          gap: 3px;
+          gap: 1px;
           cursor: pointer;
           min-width: 0;
         }
         .item-text {
           font-weight: 600;
           overflow-wrap: anywhere;
+          line-height: 1.15;
         }
         .item-actions {
           display: flex;
-          gap: 8px;
+          gap: 6px;
           align-items: center;
         }
         .empty {
-          padding: 10px 0;
+          padding: 8px 0;
           color: var(--ul-subtle);
         }
         .overlay {
@@ -555,10 +562,10 @@ class UltimateListsCard extends HTMLElement {
         }
         @media (min-width: 1000px) {
           .shell {
-            grid-template-columns: minmax(200px, 250px) minmax(0, 1fr);
+            grid-template-columns: minmax(150px, 190px) minmax(0, 1fr);
           }
           .content {
-            padding: 18px 20px;
+            padding: 14px 16px;
           }
         }
         @media (max-width: 720px) {
