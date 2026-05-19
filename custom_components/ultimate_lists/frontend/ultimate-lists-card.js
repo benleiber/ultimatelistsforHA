@@ -796,6 +796,16 @@ class UltimateListsCard extends HTMLElement {
     `;
 
     this._root.querySelector(".focus-shell")?.addEventListener("click", (ev) => ev.stopPropagation());
+    this._root.addEventListener("click", (ev) => {
+      const target = ev.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+      if (this._menuListId && !target.closest(".menu-pop") && !target.closest('[data-action="toggle-menu"]')) {
+        this._menuListId = null;
+        this._render();
+      }
+    });
     this._root.querySelectorAll("[data-action]").forEach((node) => {
       node.addEventListener("click", (ev) => this._handleClick(ev));
     });
@@ -846,10 +856,6 @@ class UltimateListsCard extends HTMLElement {
   async _handleClick(ev) {
     const target = ev.target.closest("[data-action]");
     if (!target) {
-      if (this._menuListId) {
-        this._menuListId = null;
-        this._render();
-      }
       return;
     }
     const action = target.dataset.action;
