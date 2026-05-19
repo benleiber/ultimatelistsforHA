@@ -31,8 +31,20 @@ class UltimateListsCard extends HTMLElement {
   }
 
   set hass(hass) {
+    const previousStates = this._hass?.states;
     this._hass = hass;
-    this._loadData();
+    const trackedEntity = this._config?.entity;
+    const prevState = trackedEntity ? previousStates?.[trackedEntity]?.state : undefined;
+    const nextState = trackedEntity ? hass?.states?.[trackedEntity]?.state : undefined;
+
+    if (!this._data) {
+      this._loadData();
+      return;
+    }
+
+    if (trackedEntity && prevState !== nextState) {
+      this._loadData(true);
+    }
   }
 
   async _loadData(force = false) {
