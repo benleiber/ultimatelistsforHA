@@ -1,0 +1,21 @@
+{
+  "title": "Ultimate Lists",
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Only a single Ultimate Lists configuration is allowed."
+    },
+    "step": {
+      "user": {
+        "title": "Ultimate Lists",
+        "description": "Set up Ultimate Lists for Home Assistant."
+      }
+    }
+  },
+  "entity": {
+    "todo": {
+      "list": {
+        "name": "List"
+      }
+    }
+  }
+}

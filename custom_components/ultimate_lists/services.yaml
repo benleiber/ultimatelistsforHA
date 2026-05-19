@@ -1,0 +1,240 @@
+create_list:
+  name: Create list
+  description: Create a new Ultimate Lists list.
+  fields:
+    title:
+      required: true
+      selector:
+        text:
+    type:
+      selector:
+        select:
+          options:
+            - dynamic
+            - static
+            - template
+            - hybrid
+    icon:
+      selector:
+        icon: {}
+    color:
+      selector:
+        text: {}
+    sort_mode:
+      selector:
+        select:
+          options:
+            - manual
+            - unchecked_first
+            - sectioned
+            - priority
+
+rename_list:
+  name: Rename list
+  description: Rename an existing list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    title:
+      required: true
+      selector:
+        text: {}
+
+delete_list:
+  name: Delete list
+  description: Delete a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+
+archive_list:
+  name: Archive list
+  description: Archive or restore a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    archived:
+      selector:
+        boolean: {}
+
+duplicate_list:
+  name: Duplicate list
+  description: Duplicate a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    title:
+      selector:
+        text: {}
+
+add_item:
+  name: Add item
+  description: Add an item to a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    text:
+      required: true
+      selector:
+        text: {}
+    quantity:
+      selector:
+        text: {}
+    notes:
+      selector:
+        text: {}
+
+update_item:
+  name: Update item
+  description: Update an item in a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    item_id:
+      required: true
+      selector:
+        text: {}
+    text:
+      selector:
+        text: {}
+    notes:
+      selector:
+        text: {}
+    quantity:
+      selector:
+        text: {}
+    checked:
+      selector:
+        boolean: {}
+
+delete_item:
+  name: Delete item
+  description: Delete an item from a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    item_id:
+      required: true
+      selector:
+        text: {}
+
+check_item:
+  name: Check item
+  description: Mark an item complete.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    item_id:
+      required: true
+      selector:
+        text: {}
+
+uncheck_item:
+  name: Uncheck item
+  description: Mark an item incomplete.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    item_id:
+      required: true
+      selector:
+        text: {}
+
+clear_checked:
+  name: Clear checked
+  description: Remove completed items from a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+
+create_section:
+  name: Create section
+  description: Add a section to a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    section_title:
+      required: true
+      selector:
+        text: {}
+    section_type:
+      selector:
+        select:
+          options:
+            - normal
+            - quadrant
+            - top_items
+            - room
+            - category
+
+update_section:
+  name: Update section
+  description: Update a list section.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    section_id:
+      required: true
+      selector:
+        text: {}
+    title:
+      selector:
+        text: {}
+    type:
+      selector:
+        select:
+          options:
+            - normal
+            - quadrant
+            - top_items
+            - room
+            - category
+
+delete_section:
+  name: Delete section
+  description: Delete a section from a list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    section_id:
+      required: true
+      selector:
+        text: {}
+
+duplicate_template:
+  name: Duplicate template
+  description: Duplicate a template or source list into a new active list.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    title:
+      selector:
+        text: {}
