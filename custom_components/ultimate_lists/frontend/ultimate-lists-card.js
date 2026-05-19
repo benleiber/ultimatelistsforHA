@@ -261,19 +261,19 @@ class UltimateListsCard extends HTMLElement {
         }
         .shell {
           display: grid;
-          grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
-          min-height: 440px;
+          grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+          min-height: 380px;
         }
         .sidebar {
           background: var(--ul-rail);
           border-right: 1px solid var(--ul-border);
-          padding: 16px;
+          padding: 14px;
           display: grid;
-          gap: 12px;
+          gap: 10px;
           align-content: start;
         }
         .content {
-          padding: 18px;
+          padding: 16px 18px;
           min-width: 0;
         }
         .eyebrow {
@@ -285,12 +285,12 @@ class UltimateListsCard extends HTMLElement {
         }
         .sidebar-head {
           display: grid;
-          gap: 4px;
-          padding-bottom: 4px;
+          gap: 2px;
+          padding-bottom: 2px;
         }
         .sidebar-list {
           display: grid;
-          gap: 10px;
+          gap: 8px;
         }
         .sidebar-row {
           display: grid;
@@ -302,11 +302,11 @@ class UltimateListsCard extends HTMLElement {
           border: 1px solid var(--ul-border);
           background: rgba(255,255,255,0.9);
           border-radius: 16px;
-          padding: 12px;
+          padding: 10px 12px;
           text-align: left;
           cursor: pointer;
           display: grid;
-          gap: 4px;
+          gap: 1px;
         }
         .sidebar-row.selected .sidebar-main {
           border-color: rgba(45,108,223,0.34);
@@ -316,10 +316,12 @@ class UltimateListsCard extends HTMLElement {
         .sidebar-title {
           font-weight: 700;
           color: var(--ul-text);
+          line-height: 1.15;
         }
         .sidebar-meta {
-          font-size: 0.82rem;
+          font-size: 0.78rem;
           color: var(--ul-subtle);
+          line-height: 1.15;
         }
         .sidebar-tools {
           display: grid;
@@ -389,14 +391,17 @@ class UltimateListsCard extends HTMLElement {
           justify-content: space-between;
           align-items: flex-start;
           gap: 12px;
-          margin-bottom: 14px;
+          margin-bottom: 12px;
           position: relative;
           flex-wrap: wrap;
         }
         .list-header-copy {
           display: grid;
-          gap: 4px;
+          gap: 1px;
           min-width: 0;
+        }
+        .list-header-copy h2 {
+          line-height: 1.08;
         }
         .menu-pop {
           position: absolute;
@@ -421,7 +426,7 @@ class UltimateListsCard extends HTMLElement {
           display: grid;
           grid-template-columns: 1fr auto;
           gap: 10px;
-          margin-bottom: 14px;
+          margin-bottom: 12px;
           align-items: stretch;
         }
         .quick-add.large {
@@ -448,7 +453,7 @@ class UltimateListsCard extends HTMLElement {
         }
         .items {
           display: grid;
-          gap: 10px;
+          gap: 8px;
         }
         .item-row {
           width: 100%;
@@ -507,7 +512,7 @@ class UltimateListsCard extends HTMLElement {
           align-items: center;
         }
         .empty {
-          padding: 12px 0;
+          padding: 10px 0;
           color: var(--ul-subtle);
         }
         .overlay {
@@ -546,6 +551,14 @@ class UltimateListsCard extends HTMLElement {
           .sidebar {
             border-right: 0;
             border-bottom: 1px solid var(--ul-border);
+          }
+        }
+        @media (min-width: 1000px) {
+          .shell {
+            grid-template-columns: minmax(200px, 250px) minmax(0, 1fr);
+          }
+          .content {
+            padding: 18px 20px;
           }
         }
         @media (max-width: 720px) {
