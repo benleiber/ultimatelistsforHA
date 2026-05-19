@@ -19,6 +19,7 @@ from .const import (
     ATTR_IMPORTANT,
     ATTR_ITEM_ID,
     ATTR_LIST_ID,
+    ATTR_LOCKED,
     ATTR_NOTES,
     ATTR_QUANTITY,
     ATTR_SECTION_ID,
@@ -42,7 +43,9 @@ from .const import (
     SERVICE_DELETE_SECTION,
     SERVICE_DUPLICATE_LIST,
     SERVICE_DUPLICATE_TEMPLATE,
+    SERVICE_MOVE_LIST,
     SERVICE_RENAME_LIST,
+    SERVICE_SET_LIST_LOCK,
     SERVICE_UNCHECK_ITEM,
     SERVICE_UPDATE_ITEM,
     SERVICE_UPDATE_SECTION,
@@ -115,6 +118,12 @@ UPDATE_SECTION_SCHEMA = vol.Schema(
 )
 DELETE_SECTION_SCHEMA = vol.Schema(
     {vol.Required(ATTR_LIST_ID): cv.string, vol.Required(ATTR_SECTION_ID): cv.string}
+)
+MOVE_LIST_SCHEMA = vol.Schema(
+    {vol.Required(ATTR_LIST_ID): cv.string, vol.Required("direction"): vol.In(["up", "down"])}
+)
+SET_LIST_LOCK_SCHEMA = vol.Schema(
+    {vol.Required(ATTR_LIST_ID): cv.string, vol.Required(ATTR_LOCKED): cv.boolean}
 )
 
 
@@ -238,6 +247,14 @@ async def _async_register_services(hass: HomeAssistant) -> None:
             call.data[ATTR_LIST_ID], title=call.data.get(ATTR_TITLE)
         )
 
+    async def async_move_list(call: ServiceCall) -> None:
+        await _get_manager(hass).async_move_list(call.data[ATTR_LIST_ID], call.data["direction"])
+
+    async def async_set_list_lock(call: ServiceCall) -> None:
+        await _get_manager(hass).async_set_list_lock(
+            call.data[ATTR_LIST_ID], call.data[ATTR_LOCKED]
+        )
+
     hass.services.async_register(DOMAIN, SERVICE_CREATE_LIST, async_create_list, schema=CREATE_LIST_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_RENAME_LIST, async_rename_list, schema=RENAME_LIST_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_DELETE_LIST, async_delete_list, schema=LIST_ID_SCHEMA)
@@ -273,4 +290,8 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         SERVICE_DUPLICATE_TEMPLATE,
         async_duplicate_template,
         schema=DUPLICATE_LIST_SCHEMA,
+    )
+    hass.services.async_register(DOMAIN, SERVICE_MOVE_LIST, async_move_list, schema=MOVE_LIST_SCHEMA)
+    hass.services.async_register(
+        DOMAIN, SERVICE_SET_LIST_LOCK, async_set_list_lock, schema=SET_LIST_LOCK_SCHEMA
     )

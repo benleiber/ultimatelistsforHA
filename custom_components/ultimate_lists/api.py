@@ -115,6 +115,10 @@ class UltimateListsActionView(HomeAssistantView):
                 await manager.async_delete_section(data["list_id"], data["section_id"])
             elif action == "duplicate_template":
                 await manager.async_duplicate_template(data["list_id"], title=data.get("title"))
+            elif action == "move_list":
+                await manager.async_move_list(data["list_id"], data["direction"])
+            elif action == "set_list_lock":
+                await manager.async_set_list_lock(data["list_id"], data["locked"])
             else:
                 return web.json_response({"error": f"Unsupported action: {action}"}, status=400)
         except HomeAssistantError as err:

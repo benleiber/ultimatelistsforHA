@@ -60,7 +60,10 @@ class UltimateListsManager:
         lists = list(self.store.lists.values())
         if not include_archived:
             lists = [ultimate_list for ultimate_list in lists if not ultimate_list.archived]
-        return sorted(lists, key=lambda ultimate_list: ultimate_list.title.lower())
+        return sorted(
+            lists,
+            key=lambda ultimate_list: (ultimate_list.list_order, ultimate_list.title.lower()),
+        )
 
     def get_list(self, list_id: str) -> UltimateList:
         """Return a single list."""
@@ -110,6 +113,7 @@ class UltimateListsManager:
             icon=icon,
             color=color,
             sort_mode=sort_mode,
+            list_order=len(self.store.lists),
         )
         self.store.lists[ultimate_list.id] = ultimate_list
         await self._commit()
@@ -125,12 +129,14 @@ class UltimateListsManager:
 
     async def async_delete_list(self, list_id: str) -> None:
         """Delete a list."""
-        if list_id not in self.store.lists:
-            raise HomeAssistantError(f"Unknown list_id {list_id}")
+        ultimate_list = self.get_list(list_id)
+        if ultimate_list.locked:
+            raise HomeAssistantError(f"List '{ultimate_list.title}' is locked and cannot be deleted")
         del self.store.lists[list_id]
         if not self.store.lists:
-            default_list = make_list("Grocery")
+            default_list = make_list("Grocery", list_order=0)
             self.store.lists[default_list.id] = default_list
+        self._normalize_list_order()
         await self._commit()
 
     async def async_archive_list(self, list_id: str, archived: bool = True) -> UltimateList:
@@ -150,7 +156,9 @@ class UltimateListsManager:
             icon=source.icon,
             color=source.color,
             sort_mode=source.sort_mode,
+            list_order=len(self.store.lists),
         )
+        duplicate.locked = source.locked
         section_map: dict[str, str] = {}
         for index, section in enumerate(source.sections):
             new_section = make_section(section.title, section_type=section.type, sort_order=index)
@@ -299,6 +307,35 @@ class UltimateListsManager:
             await self._commit()
         return duplicate
 
+    async def async_move_list(self, list_id: str, direction: str) -> UltimateList:
+        """Move a list up or down in display order."""
+        if direction not in {"up", "down"}:
+            raise HomeAssistantError(f"Unsupported move direction: {direction}")
+        lists = self.get_lists(include_archived=True)
+        current_index = next((index for index, item in enumerate(lists) if item.id == list_id), None)
+        if current_index is None:
+            raise HomeAssistantError(f"Unknown list_id {list_id}")
+        if direction == "up" and current_index == 0:
+            return lists[current_index]
+        if direction == "down" and current_index == len(lists) - 1:
+            return lists[current_index]
+
+        swap_index = current_index - 1 if direction == "up" else current_index + 1
+        lists[current_index], lists[swap_index] = lists[swap_index], lists[current_index]
+        for index, ultimate_list in enumerate(lists):
+            ultimate_list.list_order = index
+            self._touch(ultimate_list)
+        await self._commit()
+        return self.get_list(list_id)
+
+    async def async_set_list_lock(self, list_id: str, locked: bool) -> UltimateList:
+        """Toggle delete protection for a list."""
+        ultimate_list = self.get_list(list_id)
+        ultimate_list.locked = locked
+        self._touch(ultimate_list)
+        await self._commit()
+        return ultimate_list
+
     async def async_move_item(
         self, list_id: str, item_id: str, previous_item_id: str | None
     ) -> UltimateList:
@@ -326,6 +363,10 @@ class UltimateListsManager:
     def _normalize_sort_order(self, ultimate_list: UltimateList) -> None:
         for index, item in enumerate(ultimate_list.items):
             item.sort_order = index
+
+    def _normalize_list_order(self) -> None:
+        for index, ultimate_list in enumerate(self.get_lists(include_archived=True)):
+            ultimate_list.list_order = index
 
     def _get_item(self, ultimate_list: UltimateList, item_id: str) -> UltimateListItem:
         for item in ultimate_list.items:

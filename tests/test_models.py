@@ -44,6 +44,8 @@ class UltimateListsModelTests(unittest.TestCase):
 
     def test_round_trip_serialization(self) -> None:
         grocery = make_list("Grocery")
+        grocery.locked = True
+        grocery.list_order = 4
         produce = make_section("Produce", section_type="room", sort_order=0)
         grocery.sections.append(produce)
         grocery.items.append(make_item("Apples", section_id=produce.id, sort_order=0))
@@ -55,6 +57,8 @@ class UltimateListsModelTests(unittest.TestCase):
         self.assertEqual(len(restored.sections), 1)
         self.assertEqual(len(restored.items), 2)
         self.assertEqual(restored.items[0].text, "Apples")
+        self.assertTrue(restored.locked)
+        self.assertEqual(restored.list_order, 4)
 
     def test_unchecked_items_sort_to_top(self) -> None:
         grocery = UltimateList(id="list-1", title="Grocery", sort_mode="unchecked_first")

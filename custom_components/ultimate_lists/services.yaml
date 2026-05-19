@@ -238,3 +238,32 @@ duplicate_template:
     title:
       selector:
         text: {}
+
+move_list:
+  name: Move list
+  description: Move a list up or down in the sidebar order.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    direction:
+      required: true
+      selector:
+        select:
+          options:
+            - up
+            - down
+
+set_list_lock:
+  name: Set list lock
+  description: Lock or unlock a list against deletion.
+  fields:
+    list_id:
+      required: true
+      selector:
+        text: {}
+    locked:
+      required: true
+      selector:
+        boolean: {}

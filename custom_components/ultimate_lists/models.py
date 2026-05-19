@@ -58,6 +58,8 @@ class UltimateList:
     color: str = ""
     sort_mode: str = DEFAULT_SORT_MODE
     archived: bool = False
+    locked: bool = False
+    list_order: int = 0
     sections: list[UltimateListSection] = field(default_factory=list)
     items: list[UltimateListItem] = field(default_factory=list)
     created_at: str = field(default_factory=utcnow_iso)
@@ -106,6 +108,8 @@ def list_from_dict(data: dict[str, Any]) -> UltimateList:
         color=str(data.get("color", "")),
         sort_mode=str(data.get("sort_mode", DEFAULT_SORT_MODE)),
         archived=bool(data.get("archived", False)),
+        locked=bool(data.get("locked", False)),
+        list_order=int(data.get("list_order", 0)),
         sections=[section_from_dict(section) for section in data.get("sections", [])],
         items=[item_from_dict(item) for item in data.get("items", [])],
         created_at=str(data.get("created_at", utcnow_iso())),
@@ -139,6 +143,7 @@ def make_list(
     icon: str = "mdi:cart-outline",
     color: str = "",
     sort_mode: str = DEFAULT_SORT_MODE,
+    list_order: int = 0,
 ) -> UltimateList:
     """Create a new list."""
     return UltimateList(
@@ -148,6 +153,7 @@ def make_list(
         icon=icon,
         color=color,
         sort_mode=sort_mode,
+        list_order=list_order,
     )
 
 

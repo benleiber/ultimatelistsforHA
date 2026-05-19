@@ -12,7 +12,6 @@ class UltimateListsCard extends HTMLElement {
       schema: [
         { name: "title", selector: { text: {} } },
         { name: "entity", selector: { entity: { domain: "todo" } } },
-        { name: "focus_mode", selector: { boolean: {} } },
         { name: "show_completed", selector: { boolean: {} } },
       ],
     };
@@ -20,7 +19,6 @@ class UltimateListsCard extends HTMLElement {
 
   setConfig(config) {
     this._config = {
-      focus_mode: false,
       show_completed: true,
       ...config,
     };
@@ -56,6 +54,7 @@ class UltimateListsCard extends HTMLElement {
       const payload = await this._hass.callApi("GET", "ultimate_lists/lists");
       this._data = payload;
       this._error = "";
+      this._syncSelection();
       this._render();
     } catch (err) {
       this._error = this._formatError(err);
@@ -65,25 +64,48 @@ class UltimateListsCard extends HTMLElement {
     }
   }
 
+  _getLists() {
+    return this._data?.lists || [];
+  }
+
+  _syncSelection() {
+    const lists = this._getLists();
+    if (!lists.length) {
+      this._selectedListId = null;
+      return;
+    }
+    if (this._selectedListId && lists.some((list) => list.id === this._selectedListId)) {
+      return;
+    }
+    if (this._config?.entity) {
+      const matching = lists.find((list) => list.entity_id === this._config.entity);
+      if (matching) {
+        this._selectedListId = matching.id;
+        return;
+      }
+    }
+    this._selectedListId = lists[0].id;
+  }
+
   _pickList() {
-    const lists = this._data?.lists || [];
+    const lists = this._getLists();
     if (!lists.length) {
       return null;
     }
-    if (!this._config?.entity) {
-      return lists[0];
-    }
-    return lists.find((list) => list.entity_id === this._config.entity) || lists[0];
+    return lists.find((list) => list.id === this._selectedListId) || lists[0];
   }
 
   async _postAction(action, data) {
     try {
       this._data = await this._hass.callApi("POST", "ultimate_lists/action", { action, data });
       this._error = "";
+      this._syncSelection();
       this._render();
+      return true;
     } catch (err) {
       this._error = this._formatError(err);
       this._render();
+      return false;
     }
   }
 
@@ -118,6 +140,34 @@ class UltimateListsCard extends HTMLElement {
     }
   }
 
+  _renderSidebar(list, index, total) {
+    return `
+      <div class="sidebar-row ${this._selectedListId === list.id ? "selected" : ""}">
+        <button class="sidebar-main" data-action="select-list" data-list-id="${list.id}" type="button">
+          <span class="sidebar-title">${this._escape(list.title)}</span>
+          <span class="sidebar-meta">${list.incomplete_count} active${list.locked ? " • locked" : ""}</span>
+        </button>
+        <div class="sidebar-tools">
+          <button class="mini-button" data-action="move-list-up" data-list-id="${list.id}" type="button" ${index === 0 ? "disabled" : ""}>↑</button>
+          <button class="mini-button" data-action="move-list-down" data-list-id="${list.id}" type="button" ${index === total - 1 ? "disabled" : ""}>↓</button>
+        </div>
+      </div>
+    `;
+  }
+
+  _renderListMenu(list) {
+    if (this._menuListId !== list.id) {
+      return "";
+    }
+    return `
+      <div class="menu-pop">
+        <button class="menu-item" data-action="toggle-create-list" type="button">New List</button>
+        <button class="menu-item" data-action="rename-list" data-list-id="${list.id}" type="button">Rename</button>
+        <button class="menu-item ${list.locked ? "disabled" : "danger"}" data-action="delete-list" data-list-id="${list.id}" type="button" ${list.locked ? "disabled" : ""}>Delete</button>
+      </div>
+    `;
+  }
+
   _renderItems(list, focusMode) {
     const showCompleted = this._config.show_completed ?? true;
     const items = (list?.items_for_display || []).filter(
@@ -141,8 +191,8 @@ class UltimateListsCard extends HTMLElement {
               ${item.notes ? `<span class="meta">${this._escape(item.notes)}</span>` : ""}
             </span>
             <span class="item-actions">
-              <button class="icon-button" data-action="edit-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button">Edit</button>
-              <button class="icon-button danger" data-action="delete-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button">Delete</button>
+              <button class="icon-button subtle-button" data-action="edit-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button">Edit</button>
+              <button class="icon-button subtle-button danger" data-action="delete-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button">Delete</button>
             </span>
           </div>
         `,
@@ -163,7 +213,7 @@ class UltimateListsCard extends HTMLElement {
               <h2>${this._escape(list.title)}</h2>
               <div class="subtle">${list.incomplete_count} active items</div>
             </div>
-            <button class="icon-button" data-action="close-focus" type="button">Close</button>
+            <button class="icon-button subtle-button" data-action="close-focus" type="button">Close</button>
           </div>
           <form class="quick-add large" data-action="submit-item" data-list-id="${list.id}">
             <input name="text" type="text" placeholder="Add item..." />
@@ -182,8 +232,10 @@ class UltimateListsCard extends HTMLElement {
       return;
     }
 
-    const list = this._pickList();
-    const title = this._config.title || list?.title || "Ultimate Lists";
+    this._syncSelection();
+    const lists = this._getLists();
+    const activeList = this._pickList();
+    const headerTitle = this._config.title || "Ultimate Lists";
 
     this._root.innerHTML = `
       <style>
@@ -192,6 +244,7 @@ class UltimateListsCard extends HTMLElement {
           --ul-border: rgba(120, 132, 160, 0.22);
           --ul-bg: linear-gradient(180deg, rgba(250,251,253,0.98), rgba(242,245,249,0.98));
           --ul-panel: rgba(255,255,255,0.92);
+          --ul-rail: rgba(244, 247, 251, 0.95);
           --ul-text: #18212f;
           --ul-subtle: #637087;
           --ul-accent: #2d6cdf;
@@ -206,8 +259,96 @@ class UltimateListsCard extends HTMLElement {
           border-radius: 22px;
           overflow: hidden;
         }
-        .card {
+        .shell {
+          display: grid;
+          grid-template-columns: minmax(220px, 270px) 1fr;
+          min-height: 440px;
+        }
+        .sidebar {
+          background: var(--ul-rail);
+          border-right: 1px solid var(--ul-border);
+          padding: 16px;
+          display: grid;
+          gap: 12px;
+          align-content: start;
+        }
+        .content {
           padding: 18px;
+        }
+        .eyebrow {
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: var(--ul-subtle);
+        }
+        .sidebar-head {
+          display: grid;
+          gap: 4px;
+          padding-bottom: 4px;
+        }
+        .sidebar-list {
+          display: grid;
+          gap: 10px;
+        }
+        .sidebar-row {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 8px;
+          align-items: stretch;
+        }
+        .sidebar-main {
+          border: 1px solid var(--ul-border);
+          background: rgba(255,255,255,0.9);
+          border-radius: 16px;
+          padding: 12px;
+          text-align: left;
+          cursor: pointer;
+          display: grid;
+          gap: 4px;
+        }
+        .sidebar-row.selected .sidebar-main {
+          border-color: rgba(45,108,223,0.34);
+          box-shadow: inset 0 0 0 1px rgba(45,108,223,0.15);
+          background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(236,243,255,0.98));
+        }
+        .sidebar-title {
+          font-weight: 700;
+          color: var(--ul-text);
+        }
+        .sidebar-meta {
+          font-size: 0.82rem;
+          color: var(--ul-subtle);
+        }
+        .sidebar-tools {
+          display: grid;
+          gap: 6px;
+        }
+        .mini-button,
+        .icon-button,
+        .menu-item,
+        .toggle-hit,
+        .sidebar-main,
+        .quick-add button {
+          font: inherit;
+        }
+        .mini-button,
+        .icon-button,
+        .menu-item {
+          border: 0;
+          border-radius: 12px;
+          cursor: pointer;
+        }
+        .mini-button {
+          width: 34px;
+          height: 34px;
+          background: rgba(33, 48, 74, 0.08);
+          color: var(--ul-text);
+        }
+        .mini-button:disabled,
+        .menu-item:disabled {
+          opacity: 0.45;
+          cursor: default;
         }
         .header {
           display: flex;
@@ -216,24 +357,60 @@ class UltimateListsCard extends HTMLElement {
           gap: 12px;
           margin-bottom: 14px;
         }
-        .header h1 {
-          font-size: 1.05rem;
-          line-height: 1.2;
-          margin: 0 0 4px;
+        .header h1, .list-header h2 {
+          margin: 0;
         }
-        .subtle, .meta, .eyebrow {
+        .subtle, .meta {
           color: var(--ul-subtle);
         }
-        .eyebrow {
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          font-size: 0.7rem;
-          font-weight: 700;
-        }
-        .header-actions, .item-actions {
+        .toolbar {
           display: flex;
           gap: 8px;
           align-items: center;
+          position: relative;
+        }
+        .icon-button {
+          background: rgba(33, 48, 74, 0.08);
+          color: var(--ul-text);
+          padding: 10px 14px;
+        }
+        .subtle-button {
+          background: rgba(33, 48, 74, 0.08);
+        }
+        .icon-button.danger,
+        .menu-item.danger {
+          color: var(--ul-danger);
+        }
+        .list-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 12px;
+          margin-bottom: 14px;
+          position: relative;
+        }
+        .list-header-copy {
+          display: grid;
+          gap: 4px;
+        }
+        .menu-pop {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          background: rgba(255,255,255,0.98);
+          border: 1px solid var(--ul-border);
+          border-radius: 16px;
+          box-shadow: var(--ul-shadow);
+          display: grid;
+          gap: 4px;
+          padding: 8px;
+          min-width: 150px;
+          z-index: 10;
+        }
+        .menu-item {
+          background: transparent;
+          padding: 10px 12px;
+          text-align: left;
         }
         .quick-add {
           display: grid;
@@ -254,27 +431,14 @@ class UltimateListsCard extends HTMLElement {
           color: var(--ul-text);
           font: inherit;
         }
-        button {
-          font: inherit;
-        }
-        .quick-add button,
-        .icon-button {
+        .quick-add button {
           border: 0;
           border-radius: 14px;
           padding: 10px 14px;
           cursor: pointer;
-        }
-        .quick-add button {
           background: var(--ul-accent);
           color: white;
           font-weight: 700;
-        }
-        .icon-button {
-          background: rgba(33, 48, 74, 0.08);
-          color: var(--ul-text);
-        }
-        .icon-button.danger {
-          color: var(--ul-danger);
         }
         .items {
           display: grid;
@@ -329,8 +493,13 @@ class UltimateListsCard extends HTMLElement {
         .item-text {
           font-weight: 600;
         }
+        .item-actions {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
         .empty {
-          padding: 18px 6px 8px;
+          padding: 12px 0;
           color: var(--ul-subtle);
         }
         .overlay {
@@ -340,7 +509,6 @@ class UltimateListsCard extends HTMLElement {
           display: flex;
           align-items: stretch;
           justify-content: center;
-          padding: 0;
           z-index: 9999;
         }
         .focus-shell {
@@ -363,6 +531,15 @@ class UltimateListsCard extends HTMLElement {
           margin: 4px 0;
           font-size: 1.4rem;
         }
+        @media (max-width: 840px) {
+          .shell {
+            grid-template-columns: 1fr;
+          }
+          .sidebar {
+            border-right: 0;
+            border-bottom: 1px solid var(--ul-border);
+          }
+        }
         @media (max-width: 640px) {
           .item-row {
             grid-template-columns: 28px 1fr;
@@ -374,43 +551,55 @@ class UltimateListsCard extends HTMLElement {
         }
       </style>
       <ha-card>
-        <div class="card">
-          <div class="header">
-            <div>
+        <div class="shell">
+          <div class="sidebar">
+            <div class="sidebar-head">
               <div class="eyebrow">Ultimate Lists</div>
-              <h1>${this._escape(title)}</h1>
-              <div class="subtle">${list ? `${list.incomplete_count} active items` : "No lists found"}</div>
+              <div class="subtle">${this._escape(headerTitle)}</div>
             </div>
-            <div class="header-actions">
-              <button class="icon-button" data-action="new-list" type="button">New List</button>
-              ${list ? `<button class="icon-button" data-action="focus" type="button">Focus</button>` : ""}
-              ${list ? `<button class="icon-button danger" data-action="delete-list" data-list-id="${list.id}" type="button">Delete</button>` : ""}
+            ${this._error ? `<div class="empty">${this._escape(this._error)}</div>` : ""}
+            ${this._creatingList ? `
+              <form class="quick-add" data-action="submit-list">
+                <input name="title" type="text" placeholder="New list name..." />
+                <button type="submit">Create</button>
+              </form>
+            ` : ""}
+            <div class="sidebar-list">
+              ${lists.map((list, index) => this._renderSidebar(list, index, lists.length)).join("")}
             </div>
           </div>
-          ${this._error ? `<div class="empty">${this._escape(this._error)}</div>` : ""}
-          ${this._creatingList ? `
-            <form class="quick-add" data-action="submit-list">
-              <input name="title" type="text" placeholder="New list name..." />
-              <button type="submit">Create</button>
-            </form>
-          ` : ""}
-          ${list ? `
-            <form class="quick-add" data-action="submit-item" data-list-id="${list.id}">
-              <input name="text" type="text" placeholder="Add item..." />
-              <button type="submit">Add</button>
-            </form>
-            <div class="items">${this._renderItems(list, false)}</div>
-          ` : `<div class="empty">Create your first list to get started.</div>`}
+          <div class="content">
+            ${activeList ? `
+              <div class="list-header">
+                <div class="list-header-copy">
+                  <div class="eyebrow">${this._escape(activeList.type)}</div>
+                  <h2>${this._escape(activeList.title)}</h2>
+                  <div class="subtle">${activeList.incomplete_count} active items${activeList.locked ? " • locked against deletion" : ""}</div>
+                </div>
+                <div class="toolbar">
+                  <button class="icon-button subtle-button" data-action="toggle-lock" data-list-id="${activeList.id}" data-locked="${activeList.locked}" type="button">${activeList.locked ? "Unlock" : "Lock"}</button>
+                  <button class="icon-button subtle-button" data-action="focus" type="button">Focus</button>
+                  <button class="icon-button subtle-button" data-action="toggle-menu" data-list-id="${activeList.id}" type="button">⋯</button>
+                  ${this._renderListMenu(activeList)}
+                </div>
+              </div>
+              <form class="quick-add" data-action="submit-item" data-list-id="${activeList.id}">
+                <input name="text" type="text" placeholder="Add item..." />
+                <button type="submit">Add</button>
+              </form>
+              <div class="items">${this._renderItems(activeList, false)}</div>
+            ` : `<div class="empty">Create your first list to get started.</div>`}
+          </div>
         </div>
       </ha-card>
-      ${list ? this._renderFocusOverlay(list) : ""}
+      ${activeList ? this._renderFocusOverlay(activeList) : ""}
     `;
 
     this._root.querySelector(".focus-shell")?.addEventListener("click", (ev) => ev.stopPropagation());
     this._root.querySelectorAll("[data-action]").forEach((node) => {
       node.addEventListener("click", (ev) => this._handleClick(ev));
     });
-    this._root.querySelectorAll('form[data-action="submit-item"]').forEach((form) => {
+    this._root.querySelectorAll('form[data-action="submit-item"], form[data-action="submit-list"]').forEach((form) => {
       form.addEventListener("submit", (ev) => this._handleSubmit(ev));
     });
   }
@@ -424,18 +613,29 @@ class UltimateListsCard extends HTMLElement {
       if (!title) {
         return;
       }
-      await this._postAction("create_list", { title });
-      this._creatingList = false;
+      const created = await this._postAction("create_list", { title });
+      if (created) {
+        const newList = this._getLists().find((list) => list.title === title);
+        if (newList) {
+          this._selectedListId = newList.id;
+        }
+        this._creatingList = false;
+        this._menuListId = null;
+        this._render();
+      }
       return;
     }
+
     const input = form.querySelector('input[name="text"]');
     const text = input?.value?.trim();
     const listId = form.dataset.listId;
     if (!text || !listId) {
       return;
     }
-    await this._postAction("add_item", { list_id: listId, text });
-    input.value = "";
+    const added = await this._postAction("add_item", { list_id: listId, text });
+    if (added) {
+      input.value = "";
+    }
   }
 
   async _handleClick(ev) {
@@ -447,6 +647,45 @@ class UltimateListsCard extends HTMLElement {
     const listId = target.dataset.listId;
     const itemId = target.dataset.itemId;
 
+    if (action === "select-list" && listId) {
+      this._selectedListId = listId;
+      this._menuListId = null;
+      this._render();
+      return;
+    }
+    if (action === "move-list-up" && listId) {
+      await this._postAction("move_list", { list_id: listId, direction: "up" });
+      return;
+    }
+    if (action === "move-list-down" && listId) {
+      await this._postAction("move_list", { list_id: listId, direction: "down" });
+      return;
+    }
+    if (action === "toggle-menu" && listId) {
+      this._menuListId = this._menuListId === listId ? null : listId;
+      this._render();
+      return;
+    }
+    if (action === "toggle-create-list") {
+      this._creatingList = !this._creatingList;
+      this._menuListId = null;
+      this._render();
+      return;
+    }
+    if (action === "rename-list" && listId) {
+      const list = this._getLists().find((entry) => entry.id === listId);
+      const title = window.prompt("Rename list", list?.title || "");
+      if (title) {
+        await this._postAction("rename_list", { list_id: listId, title });
+      }
+      this._menuListId = null;
+      return;
+    }
+    if (action === "toggle-lock" && listId) {
+      const locked = target.dataset.locked === "true";
+      await this._postAction("set_list_lock", { list_id: listId, locked: !locked });
+      return;
+    }
     if (action === "focus") {
       this._focusOpen = true;
       this._render();
@@ -457,15 +696,11 @@ class UltimateListsCard extends HTMLElement {
       this._render();
       return;
     }
-    if (action === "new-list") {
-      this._creatingList = !this._creatingList;
-      this._render();
-      return;
-    }
     if (action === "delete-list" && listId) {
       if (window.confirm("Delete this list?")) {
         await this._postAction("delete_list", { list_id: listId });
       }
+      this._menuListId = null;
       return;
     }
     if (action === "toggle-item" && listId && itemId) {
@@ -497,14 +732,14 @@ class UltimateListsCard extends HTMLElement {
   }
 
   getCardSize() {
-    return this._config?.focus_mode ? 6 : 4;
+    return 8;
   }
 
   getGridOptions() {
     return {
-      rows: this._config?.focus_mode ? 6 : 4,
-      columns: 6,
-      min_rows: 3,
+      rows: 8,
+      columns: 12,
+      min_rows: 6,
     };
   }
 }
@@ -523,6 +758,6 @@ window.customCards.push({
   type: "ultimate-lists-card",
   name: "Ultimate Lists",
   preview: true,
-  description: "Compact and focus-friendly lists for Home Assistant.",
+  description: "Two-column household lists for Home Assistant.",
   documentationURL: "https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card/",
 });
