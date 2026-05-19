@@ -148,8 +148,8 @@ class UltimateListsCard extends HTMLElement {
           <span class="sidebar-meta">${list.incomplete_count} active${list.locked ? " • locked" : ""}</span>
         </button>
         <div class="sidebar-tools">
-          <button class="mini-button" data-action="move-list-up" data-list-id="${list.id}" type="button" ${index === 0 ? "disabled" : ""}>↑</button>
-          <button class="mini-button" data-action="move-list-down" data-list-id="${list.id}" type="button" ${index === total - 1 ? "disabled" : ""}>↓</button>
+          <button class="mini-button" data-action="move-list-up" data-list-id="${list.id}" type="button" ${index === 0 ? "disabled" : ""} aria-label="Move list up">&uarr;</button>
+          <button class="mini-button" data-action="move-list-down" data-list-id="${list.id}" type="button" ${index === total - 1 ? "disabled" : ""} aria-label="Move list down">&darr;</button>
         </div>
       </div>
     `;
@@ -182,7 +182,7 @@ class UltimateListsCard extends HTMLElement {
       .map(
         (item) => `
           <div class="item-row ${item.checked ? "checked" : ""} ${focusMode ? "focus" : ""}">
-            <button class="toggle-hit" data-action="toggle-item" data-list-id="${list.id}" data-item-id="${item.id}" data-checked="${item.checked}" type="button">
+            <button class="toggle-hit" data-action="toggle-item" data-list-id="${list.id}" data-item-id="${item.id}" data-checked="${item.checked}" type="button" aria-label="Toggle item">
               <span class="checkbox">${item.checked ? "&#10003;" : ""}</span>
             </button>
             <span class="item-copy" data-action="toggle-item" data-list-id="${list.id}" data-item-id="${item.id}" data-checked="${item.checked}">
@@ -191,8 +191,8 @@ class UltimateListsCard extends HTMLElement {
               ${item.notes ? `<span class="meta">${this._escape(item.notes)}</span>` : ""}
             </span>
             <span class="item-actions">
-              <button class="icon-button subtle-button icon-only" data-action="edit-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button" title="Edit item" aria-label="Edit item">✎</button>
-              <button class="icon-button subtle-button danger icon-only" data-action="delete-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button" title="Delete item" aria-label="Delete item">🗑</button>
+              <button class="icon-button subtle-button icon-only" data-action="edit-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button" title="Edit item" aria-label="Edit item">&#9998;</button>
+              <button class="icon-button subtle-button danger icon-only" data-action="delete-item" data-list-id="${list.id}" data-item-id="${item.id}" type="button" title="Delete item" aria-label="Delete item">&#128465;</button>
             </span>
           </div>
         `,
@@ -286,11 +286,13 @@ class UltimateListsCard extends HTMLElement {
         .sidebar-head {
           display: grid;
           gap: 2px;
-          padding-bottom: 0;
         }
         .sidebar-list {
           display: grid;
           gap: 6px;
+        }
+        .mobile-tab-strip {
+          display: contents;
         }
         .sidebar-row {
           display: grid;
@@ -328,6 +330,9 @@ class UltimateListsCard extends HTMLElement {
           display: grid;
           gap: 4px;
         }
+        .tab-scroll {
+          display: none;
+        }
         .mini-button,
         .icon-button,
         .menu-item,
@@ -355,10 +360,8 @@ class UltimateListsCard extends HTMLElement {
           opacity: 0.45;
           cursor: default;
         }
-        .header h1, .list-header h2 {
-          margin: 0;
-        }
-        .subtle, .meta {
+        .subtle,
+        .meta {
           color: var(--ul-subtle);
         }
         .toolbar {
@@ -406,6 +409,7 @@ class UltimateListsCard extends HTMLElement {
           min-width: 0;
         }
         .list-header-copy h2 {
+          margin: 0;
           line-height: 1.08;
           font-size: 1.05rem;
         }
@@ -588,121 +592,146 @@ class UltimateListsCard extends HTMLElement {
             min-height: 0;
           }
           .sidebar {
-            padding: 8px;
-            gap: 6px;
+            padding: 4px 6px 2px;
+            gap: 2px;
+            background: transparent;
+            border-bottom: 0;
           }
           .content {
-            padding: 8px 10px;
+            padding: 2px 6px 6px;
+          }
+          .sidebar-head {
+            display: none;
+          }
+          .mobile-tab-strip {
+            display: grid;
+            grid-template-columns: 22px minmax(0, 1fr) 22px;
+            gap: 4px;
+            align-items: center;
+          }
+          .tab-scroll {
+            display: inline-flex;
+            width: 22px;
+            height: 22px;
+            font-size: 0.65rem;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
           }
           .sidebar-list {
+            display: flex;
             gap: 4px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+          }
+          .sidebar-list::-webkit-scrollbar {
+            display: none;
           }
           .sidebar-row {
-            gap: 4px;
+            display: block;
+            min-width: max-content;
           }
           .sidebar-main {
-            padding: 6px 8px;
-            border-radius: 12px;
+            padding: 5px 8px;
+            border-radius: 999px;
+            min-width: 0;
           }
           .sidebar-title {
-            font-size: 0.84rem;
+            font-size: 0.76rem;
+            white-space: nowrap;
           }
           .sidebar-meta {
-            font-size: 0.68rem;
+            display: none;
+          }
+          .sidebar-tools {
+            display: none;
           }
           .mini-button {
-            width: 24px;
-            height: 24px;
-            font-size: 0.72rem;
+            width: 22px;
+            height: 22px;
+            font-size: 0.66rem;
           }
           .list-header {
-            gap: 6px;
-            margin-bottom: 8px;
+            gap: 4px;
+            margin-bottom: 4px;
+            justify-content: flex-start;
           }
-          .eyebrow {
-            font-size: 0.6rem;
-          }
-          .list-header-copy h2 {
-            font-size: 0.96rem;
-          }
-          .subtle,
-          .meta {
-            font-size: 0.72rem;
-            line-height: 1.1;
+          .list-header-copy {
+            display: none;
           }
           .toolbar {
             gap: 4px;
+            width: 100%;
+            justify-content: flex-start;
           }
           .icon-button {
-            padding: 6px 8px;
-            font-size: 0.78rem;
+            padding: 5px 8px;
+            font-size: 0.72rem;
             border-radius: 10px;
           }
           .icon-only {
-            width: 28px;
-            height: 28px;
-            font-size: 0.82rem;
+            width: 22px;
+            height: 22px;
+            font-size: 0.72rem;
           }
           .quick-add {
-            gap: 6px;
-            margin-bottom: 8px;
+            gap: 4px;
+            margin-bottom: 4px;
           }
           input {
-            padding: 8px 10px;
-            font-size: 0.82rem;
+            padding: 7px 8px;
+            font-size: 0.76rem;
             border-radius: 10px;
           }
           .quick-add button {
-            padding: 8px 10px;
-            font-size: 0.8rem;
+            padding: 7px 9px;
+            font-size: 0.74rem;
             border-radius: 10px;
           }
           .items {
-            gap: 4px;
+            gap: 1px;
           }
           .item-row {
             grid-template-columns: 20px 1fr auto;
-            padding: 6px 8px;
-            gap: 6px;
-            border-radius: 12px;
-          }
-          .toggle-hit {
-            align-self: start;
+            padding: 3px 4px;
+            gap: 4px;
+            border-radius: 8px;
+            border-left: 0;
+            border-right: 0;
           }
           .checkbox {
-            width: 16px;
-            height: 16px;
-            border-width: 2px;
-            font-size: 0.68rem;
-          }
-          .item-copy {
-            gap: 0;
+            width: 14px;
+            height: 14px;
+            font-size: 0.6rem;
           }
           .item-text {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             line-height: 1.1;
           }
-          .item-actions {
-            gap: 4px;
-            justify-content: flex-end;
-            align-self: start;
+          .subtle,
+          .meta {
+            font-size: 0.68rem;
+            line-height: 1.05;
           }
           .item-actions {
-            grid-column: auto;
+            gap: 2px;
           }
           .empty {
-            padding: 4px 0;
-            font-size: 0.76rem;
+            padding: 2px 0;
+            font-size: 0.68rem;
           }
           .focus-shell {
-            padding: 10px;
+            padding: 8px;
           }
           .focus-header {
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 6px;
+            margin-bottom: 8px;
           }
           .focus-header h2 {
-            font-size: 1rem;
+            font-size: 0.92rem;
           }
           .menu-pop {
             min-width: 124px;
@@ -729,8 +758,12 @@ class UltimateListsCard extends HTMLElement {
                 <button type="submit">Create</button>
               </form>
             ` : ""}
-            <div class="sidebar-list">
-              ${lists.map((list, index) => this._renderSidebar(list, index, lists.length)).join("")}
+            <div class="mobile-tab-strip">
+              <button class="mini-button tab-scroll" data-action="scroll-tabs-left" type="button" aria-label="Scroll lists left">&larr;</button>
+              <div class="sidebar-list" data-tabs-rail="true">
+                ${lists.map((list, index) => this._renderSidebar(list, index, lists.length)).join("")}
+              </div>
+              <button class="mini-button tab-scroll" data-action="scroll-tabs-right" type="button" aria-label="Scroll lists right">&rarr;</button>
             </div>
           </div>
           <div class="content">
@@ -744,7 +777,7 @@ class UltimateListsCard extends HTMLElement {
                 <div class="toolbar">
                   <button class="icon-button subtle-button" data-action="toggle-lock" data-list-id="${activeList.id}" data-locked="${activeList.locked}" type="button">${activeList.locked ? "Unlock" : "Lock"}</button>
                   <button class="icon-button subtle-button" data-action="focus" type="button">Focus</button>
-                  <button class="icon-button subtle-button" data-action="toggle-menu" data-list-id="${activeList.id}" type="button">⋯</button>
+                  <button class="icon-button subtle-button" data-action="toggle-menu" data-list-id="${activeList.id}" type="button">&#8942;</button>
                   ${this._renderListMenu(activeList)}
                 </div>
               </div>
@@ -767,6 +800,11 @@ class UltimateListsCard extends HTMLElement {
     this._root.querySelectorAll('form[data-action="submit-item"], form[data-action="submit-list"]').forEach((form) => {
       form.addEventListener("submit", (ev) => this._handleSubmit(ev));
     });
+  }
+
+  _scrollTabs(delta) {
+    const rail = this._root?.querySelector('[data-tabs-rail="true"]');
+    rail?.scrollBy({ left: delta, behavior: "smooth" });
   }
 
   async _handleSubmit(ev) {
@@ -816,6 +854,14 @@ class UltimateListsCard extends HTMLElement {
       this._selectedListId = listId;
       this._menuListId = null;
       this._render();
+      return;
+    }
+    if (action === "scroll-tabs-left") {
+      this._scrollTabs(-140);
+      return;
+    }
+    if (action === "scroll-tabs-right") {
+      this._scrollTabs(140);
       return;
     }
     if (action === "move-list-up" && listId) {
