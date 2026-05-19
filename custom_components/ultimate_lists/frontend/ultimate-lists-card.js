@@ -584,12 +584,134 @@ class UltimateListsCard extends HTMLElement {
           }
         }
         @media (max-width: 640px) {
+          .shell {
+            min-height: 0;
+          }
+          .sidebar {
+            padding: 8px;
+            gap: 6px;
+          }
+          .content {
+            padding: 8px 10px;
+          }
+          .sidebar-list {
+            gap: 4px;
+          }
+          .sidebar-row {
+            gap: 4px;
+          }
+          .sidebar-main {
+            padding: 6px 8px;
+            border-radius: 12px;
+          }
+          .sidebar-title {
+            font-size: 0.84rem;
+          }
+          .sidebar-meta {
+            font-size: 0.68rem;
+          }
+          .mini-button {
+            width: 24px;
+            height: 24px;
+            font-size: 0.72rem;
+          }
+          .list-header {
+            gap: 6px;
+            margin-bottom: 8px;
+          }
+          .eyebrow {
+            font-size: 0.6rem;
+          }
+          .list-header-copy h2 {
+            font-size: 0.96rem;
+          }
+          .subtle,
+          .meta {
+            font-size: 0.72rem;
+            line-height: 1.1;
+          }
+          .toolbar {
+            gap: 4px;
+          }
+          .icon-button {
+            padding: 6px 8px;
+            font-size: 0.78rem;
+            border-radius: 10px;
+          }
+          .icon-only {
+            width: 28px;
+            height: 28px;
+            font-size: 0.82rem;
+          }
+          .quick-add {
+            gap: 6px;
+            margin-bottom: 8px;
+          }
+          input {
+            padding: 8px 10px;
+            font-size: 0.82rem;
+            border-radius: 10px;
+          }
+          .quick-add button {
+            padding: 8px 10px;
+            font-size: 0.8rem;
+            border-radius: 10px;
+          }
+          .items {
+            gap: 4px;
+          }
           .item-row {
-            grid-template-columns: 28px 1fr;
+            grid-template-columns: 20px 1fr auto;
+            padding: 6px 8px;
+            gap: 6px;
+            border-radius: 12px;
+          }
+          .toggle-hit {
+            align-self: start;
+          }
+          .checkbox {
+            width: 16px;
+            height: 16px;
+            border-width: 2px;
+            font-size: 0.68rem;
+          }
+          .item-copy {
+            gap: 0;
+          }
+          .item-text {
+            font-size: 0.8rem;
+            line-height: 1.1;
           }
           .item-actions {
-            grid-column: 1 / -1;
+            gap: 4px;
             justify-content: flex-end;
+            align-self: start;
+          }
+          .item-actions {
+            grid-column: auto;
+          }
+          .empty {
+            padding: 4px 0;
+            font-size: 0.76rem;
+          }
+          .focus-shell {
+            padding: 10px;
+          }
+          .focus-header {
+            gap: 8px;
+            margin-bottom: 10px;
+          }
+          .focus-header h2 {
+            font-size: 1rem;
+          }
+          .menu-pop {
+            min-width: 124px;
+            padding: 6px;
+            border-radius: 12px;
+          }
+          .menu-item {
+            padding: 7px 8px;
+            font-size: 0.8rem;
           }
         }
       </style>
