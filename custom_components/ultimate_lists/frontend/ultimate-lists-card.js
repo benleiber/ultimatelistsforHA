@@ -257,7 +257,7 @@ class UltimateListsCard extends HTMLElement {
           border: 1px solid var(--ul-border);
           box-shadow: var(--ul-shadow);
           border-radius: 22px;
-          overflow: hidden;
+          overflow: visible;
         }
         .shell {
           display: grid;
@@ -275,6 +275,7 @@ class UltimateListsCard extends HTMLElement {
         .content {
           padding: 12px 14px;
           min-width: 0;
+          overflow: visible;
         }
         .eyebrow {
           text-transform: uppercase;
@@ -402,6 +403,7 @@ class UltimateListsCard extends HTMLElement {
           margin-bottom: 10px;
           position: relative;
           flex-wrap: wrap;
+          overflow: visible;
         }
         .list-header-copy {
           display: grid;
@@ -425,7 +427,7 @@ class UltimateListsCard extends HTMLElement {
           gap: 4px;
           padding: 8px;
           min-width: 150px;
-          z-index: 10;
+          z-index: 1000;
         }
         .menu-item {
           background: transparent;
