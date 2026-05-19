@@ -846,6 +846,10 @@ class UltimateListsCard extends HTMLElement {
   async _handleClick(ev) {
     const target = ev.target.closest("[data-action]");
     if (!target) {
+      if (this._menuListId) {
+        this._menuListId = null;
+        this._render();
+      }
       return;
     }
     const action = target.dataset.action;
